@@ -15,6 +15,7 @@
 
 import os
 import re
+from typing import cast
 
 
 PAGE_PATTERN = re.compile("([0-9]*)[_ -]*(.*).py")
@@ -56,7 +57,9 @@ def page_sort_key(filename):
 
 
 def page_label(filename: str) -> str:
-    extraction = re.search(PAGE_PATTERN, os.path.basename(filename))
+    extraction = cast(
+        re.Match[str], re.search(PAGE_PATTERN, os.path.basename(filename))
+    )
     page_label = extraction.group(2).replace("_", " ").strip()
     if not page_label:
         page_label = extraction.group(1)
