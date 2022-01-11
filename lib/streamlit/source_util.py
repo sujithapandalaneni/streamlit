@@ -13,6 +13,13 @@
 # limitations under the License.
 
 
+import os
+import re
+
+
+PAGE_PATTERN = re.compile("([0-9]*)[_ -]*(.*).py")
+
+
 def open_python_file(filename):
     """Open a read-only Python file taking proper care of its encoding.
 
@@ -29,3 +36,33 @@ def open_python_file(filename):
         return tokenize.open(filename)
     else:
         return open(filename, "r", encoding="utf-8")
+
+
+def find_pages(dir_path):
+    return [
+        os.path.join(dir_path, file_path)
+        for file_path in os.listdir(dir_path)
+        if re.match(PAGE_PATTERN, file_path)
+    ]
+
+
+def page_sort_key(filename):
+    [(number, label)] = re.findall(PAGE_PATTERN, os.path.basename(filename))
+
+    if number == "":
+        return (float("inf"), label)
+
+    return (int(number), label)
+
+
+def page_label(filename: str) -> str:
+    extraction = re.search(PAGE_PATTERN, os.path.basename(filename))
+    page_label = extraction.group(2).replace("_", " ").strip()
+    if not page_label:
+        page_label = extraction.group(1)
+    return page_label
+
+
+def get_pages_and_labels(dir_path):
+    sorted_files = sorted(find_pages(dir_path), key=page_sort_key)
+    return [{"file": file, "label": page_label(file)} for file in sorted_files]
