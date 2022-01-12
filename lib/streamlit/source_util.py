@@ -15,7 +15,7 @@
 
 import os
 import re
-from typing import cast
+from typing import cast, Any
 
 
 PAGE_PATTERN = re.compile("([0-9]*)[_ -]*(.*).py")
@@ -57,13 +57,17 @@ def page_sort_key(filename):
 
 
 def page_label(filename: str) -> str:
-    extraction = cast(
-        re.Match[str], re.search(PAGE_PATTERN, os.path.basename(filename))
+    extraction: re.Match[str] = cast(
+        # This weirdness is done because a cast(re.Match[str], ...) explodes
+        # at runtime since Python interprets it as an attempt to index into
+        # re.Match instead of a type annotation.
+        Any,
+        re.search(PAGE_PATTERN, os.path.basename(filename)),
     )
     page_label = extraction.group(2).replace("_", " ").strip()
     if not page_label:
         page_label = extraction.group(1)
-    return page_label
+    return str(page_label)
 
 
 def get_pages_and_labels(dir_path):
