@@ -48,6 +48,8 @@ message NewSession {
   // Theme configuration options defined in the .streamlit/config.toml file.
   // See the "theme" config section.
   CustomThemeConfig custom_theme = 7;
+
+  repeated AppPage app_pages = 8;
 }
 
 // Contains the session state that existed at the time the user connected.
@@ -132,4 +134,9 @@ message UserInfo {
 message EnvironmentInfo {
   string streamlit_version = 1;
   string python_version = 2;
+}
+
+message AppPage {
+  string script_path = 1;
+  string label = 2;
 }

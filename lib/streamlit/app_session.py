@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import sys
 import uuid
 from enum import Enum
@@ -31,11 +32,17 @@ from streamlit.metrics_util import Installation
 from streamlit.proto.ClientState_pb2 import ClientState
 from streamlit.proto.ForwardMsg_pb2 import ForwardMsg
 from streamlit.proto.GitInfo_pb2 import GitInfo
-from streamlit.proto.NewSession_pb2 import Config, CustomThemeConfig, UserInfo
+from streamlit.proto.NewSession_pb2 import (
+    Config,
+    CustomThemeConfig,
+    NewSession,
+    UserInfo,
+)
 from streamlit.session_data import SessionData
 from streamlit.session_data import generate_new_id
 from streamlit.script_request_queue import RerunData, ScriptRequest, ScriptRequestQueue
 from streamlit.script_runner import ScriptRunner, ScriptRunnerEvent
+from streamlit.source_util import get_pages_and_labels, page_label
 from streamlit.watcher.local_sources_watcher import LocalSourcesWatcher
 
 LOGGER = get_logger(__name__)
@@ -384,6 +391,7 @@ class AppSession:
         msg.new_session.name = self._session_data.name
         msg.new_session.script_path = self._session_data.script_path
 
+        _populate_app_pages(msg.new_session, self._session_data)
         _populate_config_msg(msg.new_session.config)
         _populate_theme_msg(msg.new_session.custom_theme)
 
@@ -637,3 +645,15 @@ def _populate_user_info_msg(msg: UserInfo) -> None:
         msg.email = Credentials.get_current().activation.email
     else:
         msg.email = ""
+
+
+def _populate_app_pages(msg: NewSession, session_data: SessionData) -> None:
+    main_page = msg.app_pages.add()
+    main_page.script_path = session_data.script_path
+    main_page.label = page_label(session_data.script_path)
+
+    pages_dir = os.path.join(session_data.script_folder, "pages")
+    for item in get_pages_and_labels(pages_dir):
+        page = msg.app_pages.add()
+        page.script_path = item["file"]
+        page.label = item["label"]

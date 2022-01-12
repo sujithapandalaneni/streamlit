@@ -70,6 +70,10 @@ def page_label(filename: str) -> str:
     return str(page_label)
 
 
+# TODO(vdonato): Filter out pages with duplicate labels.
 def get_pages_and_labels(dir_path):
+    if not os.path.isdir(dir_path):
+        return []
+
     sorted_files = sorted(find_pages(dir_path), key=page_sort_key)
     return [{"file": file, "label": page_label(file)} for file in sorted_files]
