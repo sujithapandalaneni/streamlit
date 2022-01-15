@@ -137,6 +137,6 @@ message EnvironmentInfo {
 }
 
 message AppPage {
-  string script_path = 1;
-  string label = 2;
+  string page_name = 1;
+  string script_path = 2;
 }

@@ -42,7 +42,7 @@ from streamlit.session_data import SessionData
 from streamlit.session_data import generate_new_id
 from streamlit.script_request_queue import RerunData, ScriptRequest, ScriptRequestQueue
 from streamlit.script_runner import ScriptRunner, ScriptRunnerEvent
-from streamlit.source_util import get_pages_and_labels, page_label
+from streamlit.source_util import get_pages, page_name
 from streamlit.watcher.local_sources_watcher import LocalSourcesWatcher
 
 LOGGER = get_logger(__name__)
@@ -246,6 +246,20 @@ class AppSession:
 
         """
         if client_state:
+            pages_dir = os.path.join(self._session_data.script_folder, "pages")
+            page_desc = next(
+                filter(
+                    lambda page_desc: page_desc["page_name"] == client_state.page_name,
+                    get_pages(pages_dir, self._session_data),
+                ),
+                None,
+            )
+
+            if page_desc:
+                LOGGER.debug(
+                    f"received rerun request for script at path {page_desc['script_path']}"
+                )
+
             rerun_data = RerunData(
                 client_state.query_string, client_state.widget_states
             )
@@ -648,12 +662,8 @@ def _populate_user_info_msg(msg: UserInfo) -> None:
 
 
 def _populate_app_pages(msg: NewSession, session_data: SessionData) -> None:
-    main_page = msg.app_pages.add()
-    main_page.script_path = session_data.script_path
-    main_page.label = page_label(session_data.script_path)
-
     pages_dir = os.path.join(session_data.script_folder, "pages")
-    for item in get_pages_and_labels(pages_dir):
-        page = msg.app_pages.add()
-        page.script_path = item["file"]
-        page.label = item["label"]
+    for page in get_pages(pages_dir, session_data):
+        page_proto = msg.app_pages.add()
+        page_proto.script_path = page["script_path"]
+        page_proto.page_name = page["page_name"]

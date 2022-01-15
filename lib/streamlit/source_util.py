@@ -15,6 +15,7 @@
 
 import os
 import re
+import urllib
 from typing import cast, Any
 
 
@@ -39,7 +40,7 @@ def open_python_file(filename):
         return open(filename, "r", encoding="utf-8")
 
 
-def find_pages(dir_path):
+def find_page_scripts(dir_path):
     return [
         os.path.join(dir_path, file_path)
         for file_path in os.listdir(dir_path)
@@ -56,7 +57,7 @@ def page_sort_key(filename):
     return (int(number), label)
 
 
-def page_label(filename: str) -> str:
+def page_name(filename: str) -> str:
     extraction: re.Match[str] = cast(
         # This weirdness is done because a cast(re.Match[str], ...) explodes
         # at runtime since Python interprets it as an attempt to index into
@@ -64,16 +65,27 @@ def page_label(filename: str) -> str:
         Any,
         re.search(PAGE_PATTERN, os.path.basename(filename)),
     )
-    page_label = extraction.group(2).replace("_", " ").strip()
-    if not page_label:
-        page_label = extraction.group(1)
-    return str(page_label)
+    name = extraction.group(2).replace("_", " ").strip()
+    if not name:
+        name = extraction.group(1)
+    return urllib.parse.quote(str(name))
 
 
-# TODO(vdonato): Filter out pages with duplicate labels.
-def get_pages_and_labels(dir_path):
+# TODO(vdonato): Filter out pages with duplicate names.
+def get_pages(dir_path, session_data):
     if not os.path.isdir(dir_path):
         return []
 
-    sorted_files = sorted(find_pages(dir_path), key=page_sort_key)
-    return [{"file": file, "label": page_label(file)} for file in sorted_files]
+    sorted_page_scripts = sorted(find_page_scripts(dir_path), key=page_sort_key)
+    additional_pages = [
+        {"page_name": page_name(script_path), "script_path": script_path}
+        for script_path in sorted_page_scripts
+    ]
+
+    return [
+        {
+            "page_name": page_name(session_data.script_path),
+            "script_path": session_data.script_path,
+        },
+        *additional_pages,
+    ]
