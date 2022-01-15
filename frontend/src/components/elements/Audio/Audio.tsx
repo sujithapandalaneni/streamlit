@@ -17,14 +17,20 @@
 
 import React, { ReactElement, useEffect, useRef } from "react"
 import { Audio as AudioProto } from "src/autogen/proto"
+import { ConnectionManager } from "src/lib/ConnectionManager"
 import { buildMediaUri } from "src/lib/UriUtil"
 
 export interface AudioProps {
   width: number
   element: AudioProto
+  connectionManager: ConnectionManager | null
 }
 
-export default function Audio({ element, width }: AudioProps): ReactElement {
+export default function Audio({
+  element,
+  width,
+  connectionManager,
+}: AudioProps): ReactElement {
   const audioRef = useRef<HTMLAudioElement>(null)
 
   useEffect(() => {
@@ -33,7 +39,7 @@ export default function Audio({ element, width }: AudioProps): ReactElement {
     }
   }, [element.startTime])
 
-  const uri = buildMediaUri(element.url)
+  const uri = buildMediaUri(element.url, connectionManager)
   return (
     <audio
       id="audio"

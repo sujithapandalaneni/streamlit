@@ -18,6 +18,7 @@
 import React, { ReactElement } from "react"
 import ReactHtmlParser from "react-html-parser"
 import withFullScreenWrapper from "src/hocs/withFullScreenWrapper"
+import { ConnectionManager } from "src/lib/ConnectionManager"
 import { buildMediaUri, xssSanitizeSvg } from "src/lib/UriUtil"
 import {
   IImage,
@@ -35,6 +36,7 @@ export interface ImageListProps {
   isFullScreen: boolean
   element: ImageListProto
   height?: number
+  connectionManager: ConnectionManager | null
 }
 
 enum WidthBehavior {
@@ -51,6 +53,7 @@ export function ImageList({
   isFullScreen,
   element,
   height,
+  connectionManager,
 }: ImageListProps): ReactElement {
   // The width field in the proto sets the image width, but has special
   // cases for -1, -2, and -3.
@@ -100,7 +103,7 @@ export function ImageList({
               ) : (
                 <img
                   style={imgStyle}
-                  src={buildMediaUri(image.url)}
+                  src={buildMediaUri(image.url, connectionManager)}
                   alt={idx.toString()}
                 />
               )}

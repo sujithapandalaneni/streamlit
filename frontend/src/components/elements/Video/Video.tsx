@@ -17,14 +17,20 @@
 
 import React, { ReactElement, useEffect, useRef } from "react"
 import { Video as VideoProto } from "src/autogen/proto"
+import { ConnectionManager } from "src/lib/ConnectionManager"
 import { buildMediaUri } from "src/lib/UriUtil"
 
 export interface VideoProps {
   width: number
   element: VideoProto
+  connectionManager: ConnectionManager | null
 }
 
-export default function Video({ element, width }: VideoProps): ReactElement {
+export default function Video({
+  element,
+  width,
+  connectionManager,
+}: VideoProps): ReactElement {
   const videoRef = useRef<HTMLVideoElement>(null)
 
   /* Element may contain "url" or "data" property. */
@@ -82,7 +88,7 @@ export default function Video({ element, width }: VideoProps): ReactElement {
     <video
       ref={videoRef}
       controls
-      src={buildMediaUri(url)}
+      src={buildMediaUri(url, connectionManager)}
       className="stVideo"
       style={{ width }}
     />

@@ -16,6 +16,7 @@
  */
 
 import nodeEmoji from "node-emoji"
+import { ConnectionManager } from "src/lib/ConnectionManager"
 import { buildMediaUri } from "src/lib/UriUtil"
 import { grabTheRightIcon } from "src/vendor/twemoji"
 import { sendS4AMessage } from "src/hocs/withS4ACommunication/withS4ACommunication"
@@ -26,7 +27,10 @@ import { sendS4AMessage } from "src/hocs/withS4ACommunication/withS4ACommunicati
  * @param {string} favicon may be an image url, or an emoji like 🍕 or :pizza:
  * @param {function} callback
  */
-export function handleFavicon(favicon: string): void {
+export function handleFavicon(
+  favicon: string,
+  connectionManager: ConnectionManager | null
+): void {
   const emoji = extractEmoji(favicon)
   let imageUrl
 
@@ -37,7 +41,7 @@ export function handleFavicon(favicon: string): void {
 
     imageUrl = emojiUrl
   } else {
-    imageUrl = buildMediaUri(favicon)
+    imageUrl = buildMediaUri(favicon, connectionManager)
   }
 
   overwriteFavicon(imageUrl)

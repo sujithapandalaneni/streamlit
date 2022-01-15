@@ -22,6 +22,7 @@ import UIButton, {
   Kind,
   Size,
 } from "src/components/shared/Button"
+import { ConnectionManager } from "src/lib/ConnectionManager"
 import { WidgetStateManager } from "src/lib/WidgetStateManager"
 import { buildMediaUri } from "src/lib/UriUtil"
 
@@ -30,10 +31,11 @@ export interface Props {
   element: DownloadButtonProto
   widgetMgr: WidgetStateManager
   width: number
+  connectionManager: ConnectionManager | null
 }
 
 function DownloadButton(props: Props): ReactElement {
-  const { disabled, element, widgetMgr, width } = props
+  const { disabled, element, widgetMgr, width, connectionManager } = props
   const style = { width }
 
   const handleDownloadClick: () => void = () => {
@@ -41,9 +43,10 @@ function DownloadButton(props: Props): ReactElement {
     // for the user.
     widgetMgr.setTriggerValue(element, { fromUi: true })
     const link = document.createElement("a")
-    const uri = `${buildMediaUri(element.url)}?title=${encodeURIComponent(
-      document.title
-    )}`
+    const uri = `${buildMediaUri(
+      element.url,
+      connectionManager
+    )}?title=${encodeURIComponent(document.title)}`
     link.setAttribute("href", uri)
     link.setAttribute("target", "_blank")
     link.click()

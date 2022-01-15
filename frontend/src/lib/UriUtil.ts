@@ -16,6 +16,7 @@
  */
 
 import { IS_DEV_ENV, WEBSOCKET_PORT_DEV } from "src/lib/baseconsts"
+import { ConnectionManager } from "src/lib/ConnectionManager"
 import DOMPurify from "dompurify"
 
 /**
@@ -110,8 +111,18 @@ export function xssSanitizeSvg(uri: string): string {
  * If this is a relative URI, assume it's being served from streamlit and
  * construct it appropriately.  Otherwise leave it alone.
  */
-export function buildMediaUri(uri: string): string {
+export function buildMediaUri(
+  uri: string,
+  connectionManager: ConnectionManager | null
+): string {
+  let baseUriParts: BaseUriParts | undefined
+  // TODO(vdonato): Update tests to also test for when connectionManager is
+  // defined.
+  if (connectionManager) {
+    baseUriParts = connectionManager.getBaseUriParts()
+  }
+
   return uri.startsWith("/media")
-    ? buildHttpUri(getWindowBaseUriParts(), uri)
+    ? buildHttpUri(baseUriParts || getWindowBaseUriParts(), uri)
     : uri
 }

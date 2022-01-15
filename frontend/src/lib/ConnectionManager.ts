@@ -139,8 +139,29 @@ export class ConnectionManager {
   private connectToRunningServer(): WebsocketConnection {
     const baseUriParts = getWindowBaseUriParts()
 
+    // TODO(vincent): Remove unnecessary baseUriPartsList elements
+    // We should have to check at most 2 since our URL is always of the form
+    // http://{domain}/{baseUrlPath} (for the root level script) or
+    // http://{domain}/{baseUrlPath}/{script name} (for a non-root level script).
+    const { basePath } = baseUriParts
+
+    const baseUriPartsList: BaseUriParts[] = []
+    if (basePath) {
+      const pathParts = basePath.split("/")
+      let currPath = ""
+
+      pathParts.forEach(part => {
+        baseUriPartsList.push({
+          ...baseUriParts,
+          basePath: currPath,
+        })
+        currPath += `${part}/`
+      })
+    }
+    baseUriPartsList.push(baseUriParts)
+
     return new WebsocketConnection({
-      baseUriPartsList: [baseUriParts],
+      baseUriPartsList,
       onMessage: this.props.onMessage,
       onConnectionStateChange: this.setConnectionState,
       onRetry: this.showRetryError,

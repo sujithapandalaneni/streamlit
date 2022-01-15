@@ -17,6 +17,7 @@
 
 import { ScriptRunState } from "src/lib/ScriptRunState"
 import { AppNode } from "src/lib/AppNode"
+import { ConnectionManager } from "src/lib/ConnectionManager"
 import { FormsData, WidgetStateManager } from "src/lib/WidgetStateManager"
 import { FileUploadClient } from "src/lib/FileUploadClient"
 import { ComponentRegistry } from "src/components/widgets/CustomComponent/"
@@ -67,4 +68,5 @@ export interface BaseBlockProps {
   widgetsDisabled: boolean
   componentRegistry: ComponentRegistry
   formsData: FormsData
+  connectionManager: ConnectionManager | null
 }
