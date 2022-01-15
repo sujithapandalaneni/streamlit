@@ -42,6 +42,15 @@ def allow_cross_origin_requests():
 
 
 class StaticFileHandler(tornado.web.StaticFileHandler):
+    def initialize(self, path, default_filename, get_app_page_names):
+        # TODO(vdonato): We don't want to run get_app_page_names before serving
+        # every static file in the production version of this since that'll
+        # slow things down too much. Instead, we should watch the directory for
+        # changes and update a cached list of pages when one is detected.
+        self._page_names = get_app_page_names()
+
+        super().initialize(path=path, default_filename=default_filename)
+
     def set_extra_headers(self, path):
         """Disable cache for HTML files.
 
@@ -54,6 +63,15 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
             self.set_header("Cache-Control", "no-cache")
         else:
             self.set_header("Cache-Control", "public")
+
+    def parse_url_path(self, url_path: str) -> str:
+        url_parts = url_path.split("/")
+        maybe_page_name = url_parts[0]
+
+        if maybe_page_name in self._page_names:
+            url_path = "/".join(url_parts[1:])
+
+        return super().parse_url_path(url_path)
 
 
 class AssetsFileHandler(tornado.web.StaticFileHandler):

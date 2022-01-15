@@ -15,7 +15,6 @@
 
 import os
 import re
-import urllib
 from typing import cast, Any
 
 
@@ -68,11 +67,16 @@ def page_name(filename: str) -> str:
     name = extraction.group(2).replace("_", " ").strip()
     if not name:
         name = extraction.group(1)
-    return urllib.parse.quote(str(name))
+    return str(name)
 
 
 # TODO(vdonato): Filter out pages with duplicate names.
-def get_pages(dir_path, session_data):
+# TODO(vdonato): Rework this to just take main_script_path since we can use it
+#                to find the pages dir.
+# Question: Actually.. do we look for the `pages` directory relative to the
+# current working directory or relative to where the script lives? Need to
+# clarify this.
+def get_pages(dir_path, main_script_path):
     if not os.path.isdir(dir_path):
         return []
 
@@ -84,8 +88,8 @@ def get_pages(dir_path, session_data):
 
     return [
         {
-            "page_name": page_name(session_data.script_path),
-            "script_path": session_data.script_path,
+            "page_name": page_name(main_script_path),
+            "script_path": main_script_path,
         },
         *additional_pages,
     ]

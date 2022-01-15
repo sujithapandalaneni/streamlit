@@ -84,6 +84,7 @@ from streamlit.server.server_util import is_url_from_allowed_origins
 from streamlit.server.server_util import make_url_path_regex
 from streamlit.server.server_util import serialize_forward_msg
 from streamlit.server.server_util import get_max_message_size_bytes
+from streamlit.source_util import get_pages
 from streamlit.watcher.local_sources_watcher import LocalSourcesWatcher
 
 
@@ -291,6 +292,15 @@ class Server:
     def script_path(self) -> str:
         return self._script_path
 
+    def get_app_page_names(self):
+        pages_dir = os.path.join(os.path.dirname(self.script_path), "pages")
+        return set(
+            [
+                page_desc["page_name"]
+                for page_desc in get_pages(pages_dir, self.script_path)
+            ]
+        )
+
     def get_session_by_id(self, session_id: str) -> Optional[AppSession]:
         """Return the AppSession corresponding to the given id, or None if
         no such session exists."""
@@ -413,7 +423,11 @@ class Server:
                     (
                         make_url_path_regex(base, "(.*)"),
                         StaticFileHandler,
-                        {"path": "%s/" % static_path, "default_filename": "index.html"},
+                        {
+                            "path": "%s/" % static_path,
+                            "default_filename": "index.html",
+                            "get_app_page_names": self.get_app_page_names,
+                        },
                     ),
                     (make_url_path_regex(base, trailing_slash=False), AddSlashHandler),
                 ]

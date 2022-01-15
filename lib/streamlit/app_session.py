@@ -14,9 +14,11 @@
 
 import os
 import sys
+import urllib
 import uuid
 from enum import Enum
 from typing import TYPE_CHECKING, Callable, Optional
+from urllib.parse import unquote
 from streamlit.uploaded_file_manager import UploadedFileManager
 
 import tornado.gen
@@ -246,11 +248,12 @@ class AppSession:
 
         """
         if client_state:
+            page_name = (unquote(client_state.page_name).rstrip("/"),)
             pages_dir = os.path.join(self._session_data.script_folder, "pages")
             page_desc = next(
                 filter(
-                    lambda page_desc: page_desc["page_name"] == client_state.page_name,
-                    get_pages(pages_dir, self._session_data),
+                    lambda p: p["page_name"] == page_name,
+                    get_pages(pages_dir, self._session_data.script_path),
                 ),
                 None,
             )
@@ -663,7 +666,7 @@ def _populate_user_info_msg(msg: UserInfo) -> None:
 
 def _populate_app_pages(msg: NewSession, session_data: SessionData) -> None:
     pages_dir = os.path.join(session_data.script_folder, "pages")
-    for page in get_pages(pages_dir, session_data):
+    for page in get_pages(pages_dir, session_data.script_path):
         page_proto = msg.app_pages.add()
         page_proto.script_path = page["script_path"]
         page_proto.page_name = page["page_name"]
