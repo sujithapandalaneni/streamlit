@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import gc
 import sys
 import threading
-import gc
 from contextlib import contextmanager
 from enum import Enum
 from typing import Optional
@@ -123,6 +123,7 @@ class ScriptRunner(object):
         self._client_state = client_state
         self._session_state: SessionState = session_state
         self._session_state.set_widgets_from_proto(client_state.widget_states)
+        self._page_name = ""
 
         self.on_event = Signal(
             doc="""Emitted when a ScriptRunnerEvent occurs.
@@ -207,6 +208,7 @@ class ScriptRunner(object):
         # created.
         client_state = ClientState()
         client_state.query_string = self._client_state.query_string
+        client_state.page_name = self._page_name
         widget_states = self._session_state.as_widget_states()
         client_state.widget_states.widgets.extend(widget_states)
         self.on_event.send(ScriptRunnerEvent.SHUTDOWN, client_state=client_state)
@@ -304,16 +306,21 @@ class ScriptRunner(object):
         # in their previous script elements disappearing.
 
         try:
-            with source_util.open_python_file(self._session_data.script_path) as f:
+            if not rerun_data.script_path:
+                script_path = self._session_data.script_path
+            else:
+                script_path = rerun_data.script_path
+
+            with source_util.open_python_file(script_path) as f:
                 filebody = f.read()
 
             if config.get_option("runner.magicEnabled"):
-                filebody = magic.add_magic(filebody, self._session_data.script_path)
+                filebody = magic.add_magic(filebody, script_path)
 
             code = compile(
                 filebody,
                 # Pass in the file path so it can show up in exceptions.
-                self._session_data.script_path,
+                script_path,
                 # We're compiling entire blocks of Python, so we need "exec"
                 # mode (as opposed to "eval" or "single").
                 mode="exec",

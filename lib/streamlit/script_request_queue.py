@@ -22,6 +22,8 @@ import attr
 from streamlit.proto.WidgetStates_pb2 import WidgetStates
 from streamlit.state.widgets import coalesce_widget_states
 
+from lib.streamlit.source_util import page_name
+
 
 class ScriptRequest(Enum):
     # Stop the script, but don't shutdown the ScriptRunner (data=None)
@@ -38,6 +40,8 @@ class RerunData:
 
     query_string: str = ""
     widget_states: Optional[WidgetStates] = None
+    page_name: str = ""
+    script_path: str = ""
 
 
 @attr.s(auto_attribs=True, slots=True)
@@ -94,6 +98,8 @@ class ScriptRequestQueue:
                             RerunData(
                                 query_string=data.query_string,
                                 widget_states=data.widget_states,
+                                page_name=data.page_name,
+                                script_path=data.script_path,
                             ),
                         )
                     elif data.widget_states is None:
@@ -114,6 +120,8 @@ class ScriptRequestQueue:
                             RerunData(
                                 query_string=data.query_string,
                                 widget_states=coalesced_states,
+                                page_name=data.page_name,
+                                script_path=data.script_path,
                             ),
                         )
                 else:
