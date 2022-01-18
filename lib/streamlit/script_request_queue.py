@@ -22,8 +22,6 @@ import attr
 from streamlit.proto.WidgetStates_pb2 import WidgetStates
 from streamlit.state.widgets import coalesce_widget_states
 
-from lib.streamlit.source_util import page_name
-
 
 class ScriptRequest(Enum):
     # Stop the script, but don't shutdown the ScriptRunner (data=None)
