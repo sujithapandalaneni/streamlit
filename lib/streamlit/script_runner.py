@@ -123,7 +123,6 @@ class ScriptRunner(object):
         self._client_state = client_state
         self._session_state: SessionState = session_state
         self._session_state.set_widgets_from_proto(client_state.widget_states)
-        self._page_name = ""
 
         self.on_event = Signal(
             doc="""Emitted when a ScriptRunnerEvent occurs.
@@ -178,6 +177,7 @@ class ScriptRunner(object):
             query_string=self._client_state.query_string,
             session_state=self._session_state,
             uploaded_file_mgr=self._uploaded_file_mgr,
+            page_name=self._client_state.page_name,
         )
         add_script_run_ctx(self._script_thread, script_run_ctx)
         self._script_thread.start()
@@ -202,13 +202,20 @@ class ScriptRunner(object):
             else:
                 raise RuntimeError("Unrecognized ScriptRequest: %s" % request)
 
+        ctx = get_script_run_ctx()
+        if ctx is None:
+            # This should never be possible on the script_runner thread.
+            raise RuntimeError(
+                "ScriptRunner thread has a null ScriptRunContext. Something has gone very wrong!"
+            )
+
         # Send a SHUTDOWN event before exiting. This includes the widget values
         # as they existed after our last successful script run, which the
         # AppSession will pass on to the next ScriptRunner that gets
         # created.
         client_state = ClientState()
         client_state.query_string = self._client_state.query_string
-        client_state.page_name = self._page_name
+        client_state.page_name = ctx.page_name
         widget_states = self._session_state.as_widget_states()
         client_state.widget_states.widgets.extend(widget_states)
         self.on_event.send(ScriptRunnerEvent.SHUTDOWN, client_state=client_state)

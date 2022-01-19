@@ -240,7 +240,12 @@ class AppSessionNewSessionDataTest(tornado.testing.AsyncTestCase):
 
         orig_ctx = get_script_run_ctx()
         ctx = ScriptRunContext(
-            "TestSessionID", rs._session_data.enqueue, "", None, None
+            "TestSessionID",
+            rs._session_data.enqueue,
+            "",
+            None,
+            None,
+            page_name="",
         )
         add_script_run_ctx(ctx=ctx)
 
